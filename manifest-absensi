@@ -1,0 +1,26 @@
+{
+  "name": "Absensi QR — SMP Muhammadiyah 9 Nagreg",
+  "short_name": "Absensi QR",
+  "description": "Aplikasi absensi siswa berbasis QR Code untuk SMP Muhammadiyah 9 Nagreg",
+  "start_url": "./absensi-qr-smp.html",
+  "scope": "./absensi-qr-smp.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF7F0",
+  "theme_color": "#0F4C33",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "https://i.ibb.co.com/5Xb4Crkq/Logo-Sekolah-01.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co.com/5Xb4Crkq/Logo-Sekolah-01.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
