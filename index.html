@@ -1405,8 +1405,10 @@ el('btn-periode-csv').addEventListener('click', async ()=>{
       'S': { isi:'FFFDF0C2', teks:'FF7A5F00', nama:'Sakit' },
       'A': { isi:'FFF9D5D2', teks:'FF9B1C15', nama:'Alpa' }
     };
-    const ISI_LIBUR = 'FFF7DFC8';   // warna kolom hari libur (merge dari atas ke bawah)
+    const ISI_LIBUR = 'FFF7DFC8';    // libur khusus / hari besar (kolom di-merge atas-bawah)
     const TEKS_LIBUR = 'FF8A4B16';
+    const ISI_MINGGUAN = 'FFEDEAE2'; // libur mingguan Sabtu/Minggu (hanya diwarnai, tanpa merge)
+    const TEKS_MINGGUAN = 'FF6B6455';
     const garisTipis = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
 
     const wb = new ExcelJS.Workbook();
@@ -1456,30 +1458,51 @@ el('btn-periode-csv').addEventListener('click', async ()=>{
       c.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
     });
 
-    // ===== KOLOM HARI LIBUR: DI-MERGE DARI HEADER SAMPAI BARIS TERAKHIR =====
-    // Keterangan libur ditulis vertikal (diputar 90°) seperti pada buku absen manual.
+    // ===== KOLOM HARI LIBUR =====
+    // Ada dua perlakuan:
+    // - Libur KHUSUS (tanggal tertentu di sheet HariLibur, mis. hari besar): kolom digabung
+    //   (merge) dari bawah header sampai baris terakhir, keterangannya ditulis vertikal
+    //   seperti pada buku absen manual.
+    // - Libur MINGGUAN (Sabtu/Minggu): HANYA diberi warna, TIDAK digabung, supaya kalau
+    //   sewaktu-waktu ada jadwal masuk tambahan di hari itu absennya tetap terlihat.
+    let adaLiburMingguan = false;
     periodeKolomTanggal.forEach((tgl, k) => {
-      const ket = periodeHariLibur[tgl];
-      if (!ket) return;
+      const info = periodeHariLibur[tgl];
+      if (!info) return;
+      const keterangan = typeof info === 'string' ? info : info.keterangan;
+      const tipe = (typeof info === 'string') ? 'khusus' : (info.tipe || 'khusus');
       const kol = 4 + k;
 
-      // Kosongkan dulu isi sel di kolom ini supaya merge tidak menghapus data tak sengaja
+      // Header tanggalnya diberi warna libur pada kedua jenis
+      const selHeader = ws.getCell(barisAwalTabel, kol);
+      selHeader.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: tipe === 'mingguan' ? ISI_MINGGUAN : ISI_LIBUR } };
+      selHeader.font = { bold:true, color:{ argb: tipe === 'mingguan' ? TEKS_MINGGUAN : TEKS_LIBUR } };
+
+      if (tipe === 'mingguan') {
+        adaLiburMingguan = true;
+        // Hanya warnai sel yang MASIH KOSONG; sel yang berisi H/T/S/I/A tetap memakai
+        // warna statusnya masing-masing agar jadwal masuk tambahan tetap terbaca.
+        for (let br = barisAwalTabel + 1; br <= barisAkhirTabel; br++) {
+          const cell = ws.getCell(br, kol);
+          if (cell.value === null || cell.value === undefined || cell.value === '') {
+            cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_MINGGUAN } };
+          }
+        }
+        return;
+      }
+
+      // Libur khusus -> merge dari atas sampai bawah
       for (let br = barisAwalTabel + 1; br <= barisAkhirTabel; br++) ws.getCell(br, kol).value = null;
 
       if (barisAkhirTabel > barisAwalTabel) {
         ws.mergeCells(barisAwalTabel + 1, kol, barisAkhirTabel, kol);
       }
       const selLibur = ws.getCell(barisAwalTabel + 1, kol);
-      selLibur.value = ket;
+      selLibur.value = keterangan;
       selLibur.alignment = { vertical:'middle', horizontal:'center', textRotation: 90, wrapText:false };
       selLibur.font = { bold:true, size:9, color:{ argb: TEKS_LIBUR } };
       selLibur.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_LIBUR } };
       selLibur.border = garisTipis;
-
-      // Header tanggalnya ikut diberi warna libur
-      const selHeader = ws.getCell(barisAwalTabel, kol);
-      selHeader.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_LIBUR } };
-      selHeader.font = { bold:true, color:{ argb: TEKS_LIBUR } };
     });
 
     ws.getRow(2).font = { bold:true, size:13 };
@@ -1509,8 +1532,17 @@ el('btn-periode-csv').addEventListener('click', async ()=>{
     selLiburLegenda.value = '';
     selLiburLegenda.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_LIBUR } };
     selLiburLegenda.border = garisTipis;
-    ws.getCell(barisLegenda + 1, 3).value = '= Hari Libur (kolom digabung)';
+    ws.getCell(barisLegenda + 1, 3).value = '= Hari Libur / hari besar (kolom digabung)';
     ws.getCell(barisLegenda + 1, 3).font = { size:10 };
+
+    if (adaLiburMingguan) {
+      const selMingguanLegenda = ws.getCell(barisLegenda + 2, 2);
+      selMingguanLegenda.value = '';
+      selMingguanLegenda.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_MINGGUAN } };
+      selMingguanLegenda.border = garisTipis;
+      ws.getCell(barisLegenda + 2, 3).value = '= Libur mingguan (tetap bisa diisi bila ada jadwal masuk tambahan)';
+      ws.getCell(barisLegenda + 2, 3).font = { size:10 };
+    }
 
     ws.getColumn(1).width = 5;
     ws.getColumn(2).width = 13;
