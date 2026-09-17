@@ -328,7 +328,55 @@
   .manual-toggle a{font-size:12.5px;color:var(--hijau);text-decoration:underline;cursor:pointer;}
   .manual-input{display:none;margin-top:12px;gap:8px;}
   .manual-input input{flex:1;padding:11px 12px;border:1.5px solid var(--garis);border-radius:9px;font-family:var(--font-data);}
-  .manual-input button{padding:0 16px;border-radius:9px;border:none;background:var(--hijau-tua);color:#fff;font-weight:600;font-size:13px;}
+  .manual-input button{
+    padding:0 16px;border-radius:9px;border:none;background:var(--hijau-tua);color:#fff;
+    font-weight:600;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    min-width:96px;transition:opacity .15s ease;
+  }
+  .manual-input button:disabled{opacity:.72;cursor:progress;}
+  .manual-input input:disabled{background:#f1ede4;color:#8a8375;}
+
+  /* ===== EFEK LOADING ===== */
+  .spinner{
+    display:none;width:14px;height:14px;flex-shrink:0;border-radius:50%;
+    border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+    animation:putar .7s linear infinite;
+  }
+  button.memuat .spinner{display:inline-block;}
+  @keyframes putar{to{transform:rotate(360deg);}}
+
+  .hasil-scan.memuat{background:var(--krem);border:1.5px dashed var(--garis);}
+  .hasil-scan.memuat .nama-siswa{color:var(--hijau-tua);}
+  .foto-siswa.memuat{
+    background:linear-gradient(100deg,#ece6d8 30%,#f7f3ea 50%,#ece6d8 70%) !important;
+    background-size:200% 100%;color:transparent !important;
+    animation:kilau 1.1s ease-in-out infinite;
+  }
+  @keyframes kilau{from{background-position:180% 0;}to{background-position:-20% 0;}}
+  .titik-memuat::after{
+    content:'';display:inline-block;width:1.2em;text-align:left;
+    animation:titik 1.2s steps(4,end) infinite;
+  }
+  @keyframes titik{0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}}
+
+  /* ===== UNGGAH FOTO PROFIL ===== */
+  .unggah-foto{display:flex;gap:12px;align-items:flex-start;}
+  .pratinjau-foto{
+    width:74px;height:74px;border-radius:50%;flex-shrink:0;overflow:hidden;
+    background:var(--hijau-muda);border:1.5px dashed var(--garis);
+    display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:600;color:var(--hijau-tua);text-align:center;
+  }
+  .pratinjau-foto img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pratinjau-foto.terisi{border-style:solid;border-color:var(--hijau);}
+  .unggah-aksi{flex:1;min-width:0;}
+  .unggah-tombol{display:flex;gap:6px;flex-wrap:wrap;}
+  .unggah-info{font-size:10.5px;color:#7a7364;margin-top:6px;line-height:1.45;}
+  .unggah-link{display:inline-block;margin-top:6px;font-size:11.5px;color:var(--hijau);text-decoration:underline;cursor:pointer;}
+  .btn-foto{
+    margin-left:auto;background:var(--emas-terang);border:none;color:#5a4410;
+    border-radius:8px;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;
+  }
 
   /* ===== REKAP ===== */
   .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
@@ -661,8 +709,8 @@
           <a id="toggle-manual">Kamera bermasalah? Input NIS manual</a>
         </div>
         <div class="manual-input" id="manual-input">
-          <input type="text" id="input-nis-manual" placeholder="Ketik NIS siswa">
-          <button id="btn-absen-manual">Absen</button>
+          <input type="text" id="input-nis-manual" placeholder="Ketik NIS siswa" inputmode="numeric" autocomplete="off">
+          <button id="btn-absen-manual"><span class="spinner"></span><span class="label-btn">Absen</span></button>
         </div>
       </div>
     </section>
@@ -767,7 +815,24 @@
               <option value="P">Perempuan</option>
             </select>
           </div>
-          <div class="field"><label>URL Foto (opsional)</label><input type="text" id="tambah-foto" placeholder="https://..."></div>
+          <div class="field">
+            <label>Foto Profil (opsional)</label>
+            <div class="unggah-foto">
+              <div class="pratinjau-foto" id="pratinjau-foto">Foto</div>
+              <div class="unggah-aksi">
+                <input type="file" id="berkas-foto" accept="image/*" hidden>
+                <input type="file" id="berkas-foto-kamera" accept="image/*" capture="user" hidden>
+                <div class="unggah-tombol">
+                  <button type="button" class="btn btn-ghost btn-kecil" id="btn-pilih-foto">🖼 Pilih Foto</button>
+                  <button type="button" class="btn btn-ghost btn-kecil" id="btn-kamera-foto">📷 Ambil Foto</button>
+                  <button type="button" class="btn btn-ghost btn-kecil hidden" id="btn-hapus-foto">✕ Hapus</button>
+                </div>
+                <div class="unggah-info" id="unggah-info">Foto otomatis dikecilkan ke 400px agar hemat kuota.</div>
+                <a class="unggah-link" id="toggle-foto-url">atau tempel URL foto</a>
+                <input type="text" id="tambah-foto" class="hidden" placeholder="https://..." style="margin-top:6px;">
+              </div>
+            </div>
+          </div>
           <div class="grid2">
             <div class="field"><label>No. HP Orang Tua (WA)</label><input type="text" id="tambah-nohp" placeholder="62812xxxxxxx"></div>
             <div class="field"><label>Telegram Chat ID</label><input type="text" id="tambah-telegram" placeholder="opsional"></div>
@@ -810,6 +875,8 @@
 </div>
 
 <!-- Area cetak kartu QR (hanya tampil saat print) -->
+<input type="file" id="berkas-foto-siswa" accept="image/*" hidden>
+
 <div id="print-area"></div>
 
 <!-- Modal Kartu Absen per siswa -->
@@ -857,6 +924,7 @@ let sedangMemproses = false;
 let rekapCache = [];
 let periodeCache = [];
 let periodeKolomTanggal = [];
+let periodeHariLibur = {};
 
 const el = (id) => document.getElementById(id);
 
@@ -1026,18 +1094,36 @@ function mulaiScanner(){
 async function handleHasilScan(nis){
   if (sedangMemproses) return;
   sedangMemproses = true;
+  // Waktu diambil TEPAT saat QR terbaca, bukan saat server memproses permintaan.
+  const waktuClient = new Date().toISOString();
   html5QrCode.pause(true);
-  await prosesAbsen(nis);
+  await prosesAbsen(nis, waktuClient);
   setTimeout(()=>{
     sedangMemproses = false;
     try{ html5QrCode.resume(); }catch(e){}
   }, 1800);
 }
 
-async function prosesAbsen(nis){
+// Menampilkan status "sedang memproses" di kotak hasil scan, supaya operator tahu
+// permintaannya sudah terkirim dan tidak menekan tombol Absen berkali-kali.
+function tampilkanKotakMemuat(teks){
   const kotak = el('hasil-scan');
-  const res = await apiPost('scan', { nis: nis });
+  const fotoBox = el('foto-siswa');
   kotak.style.display = 'flex';
+  kotak.className = 'hasil-scan memuat';
+  el('tipe-scan-label').classList.add('hidden');
+  el('hasil-nama').innerHTML = (teks || 'Memproses absen') + '<span class="titik-memuat"></span>';
+  el('hasil-detail').textContent = 'Menghubungi server, mohon tunggu.';
+  fotoBox.innerHTML = '';
+  fotoBox.textContent = '';
+  fotoBox.className = 'foto-siswa memuat';
+}
+
+async function prosesAbsen(nis, waktuClient){
+  const kotak = el('hasil-scan');
+  const res = await apiPost('scan', { nis: nis, waktuClient: waktuClient || new Date().toISOString() });
+  kotak.style.display = 'flex';
+  el('foto-siswa').className = 'foto-siswa';
   const labelTipe = el('tipe-scan-label');
   const fotoBox = el('foto-siswa');
 
@@ -1077,11 +1163,40 @@ el('toggle-manual').addEventListener('click', ()=>{
   const box = el('manual-input');
   box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
 });
-el('btn-absen-manual').addEventListener('click', async ()=>{
-  const nis = el('input-nis-manual').value.trim();
-  if (!nis) return;
-  await prosesAbsen(nis);
-  el('input-nis-manual').value = '';
+let sedangAbsenManual = false;
+async function absenManual(){
+  if (sedangAbsenManual) return;
+  const input = el('input-nis-manual');
+  const nis = input.value.trim();
+  if (!nis) { tampilkanToast('Ketik NIS siswa terlebih dahulu.'); input.focus(); return; }
+
+  const btn = el('btn-absen-manual');
+  const label = btn.querySelector('.label-btn');
+  sedangAbsenManual = true;
+  btn.disabled = true;
+  btn.classList.add('memuat');
+  label.textContent = 'Memproses';
+  input.disabled = true;
+  // Waktu diambil TEPAT saat tombol ditekan, bukan saat server memproses.
+  const waktuClient = new Date().toISOString();
+  tampilkanKotakMemuat('Mencari NIS ' + nis);
+
+  try {
+    await prosesAbsen(nis, waktuClient);
+    input.value = '';
+  } finally {
+    sedangAbsenManual = false;
+    btn.disabled = false;
+    btn.classList.remove('memuat');
+    label.textContent = 'Absen';
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+el('btn-absen-manual').addEventListener('click', absenManual);
+el('input-nis-manual').addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter') { e.preventDefault(); absenManual(); }
 });
 
 /* ================= REKAP HARIAN ================= */
@@ -1237,6 +1352,7 @@ async function muatRekapPeriode(){
   if (!res.success) { el('periode-wadah').innerHTML = '<div class="kosong">'+res.message+'</div>'; return; }
   periodeCache = res.data;
   periodeKolomTanggal = res.kolomTanggal || [];
+  periodeHariLibur = res.hariLibur || {};
   renderPeriodeDenganFilter();
 }
 
@@ -1281,8 +1397,23 @@ el('btn-periode-csv').addEventListener('click', async ()=>{
       periodeKolomTanggal[0].slice(0,7) === periodeKolomTanggal[periodeKolomTanggal.length-1].slice(0,7);
     const labelKolom = (tgl) => bulanSama ? String(parseInt(tgl.slice(8,10),10)) : tgl.slice(8,10)+'/'+tgl.slice(5,7);
 
+    // Warna per kode status. Dipakai untuk isi sel harian sekaligus legenda di bawah tabel.
+    const GAYA_STATUS = {
+      'H': { isi:'FFD6EFD8', teks:'FF1B5E20', nama:'Hadir' },
+      'T': { isi:'FFFBE7B2', teks:'FF7A5200', nama:'Terlambat' },
+      'I': { isi:'FFD8E6F7', teks:'FF10437A', nama:'Izin' },
+      'S': { isi:'FFFDF0C2', teks:'FF7A5F00', nama:'Sakit' },
+      'A': { isi:'FFF9D5D2', teks:'FF9B1C15', nama:'Alpa' }
+    };
+    const ISI_LIBUR = 'FFF7DFC8';   // warna kolom hari libur (merge dari atas ke bawah)
+    const TEKS_LIBUR = 'FF8A4B16';
+    const garisTipis = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Rekap Absensi');
+    const ws = wb.addWorksheet('Rekap Absensi', {
+      views: [{ state:'frozen', xSplit:3, ySplit:5 }],
+      pageSetup: { orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 }
+    });
 
     const headerAtas = ['NO','NIS','Nama', ...periodeKolomTanggal.map(labelKolom), 'Hadir','Izin','Sakit','Alpa','Persentase Kehadiran'];
     ws.addRow([]);
@@ -1295,33 +1426,96 @@ el('btn-periode-csv').addEventListener('click', async ()=>{
       const barisHarian = periodeKolomTanggal.map(tgl => (r.harian && r.harian[tgl]) ? r.harian[tgl] : '');
       const hadirGabung = r.hadir + r.terlambat;
       const baris = ws.addRow([idx+1, r.nis, r.nama, ...barisHarian, hadirGabung, r.izin, r.sakit, r.alpa, (r.persentase + '%')]);
+      baris.height = 17;
       baris.eachCell(c => { c.alignment = { vertical:'middle', horizontal:'center' }; });
       baris.getCell(3).alignment = { vertical:'middle', horizontal:'left' };
+
+      // Warnai sel harian sesuai kode status
+      periodeKolomTanggal.forEach((tgl, k) => {
+        const kode = barisHarian[k];
+        const gaya = GAYA_STATUS[kode];
+        if (!gaya) return;
+        const cell = baris.getCell(4 + k);
+        cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: gaya.isi } };
+        cell.font = { bold:true, size:10, color:{ argb: gaya.teks } };
+      });
     });
 
-    // Styling: border tipis di semua sel tabel + header tebal berwarna
+    // Border tipis di semua sel tabel + header tebal berwarna
     const totalKolom = headerAtas.length;
     const barisAwalTabel = 5, barisAkhirTabel = 4 + data.length;
     for (let br = barisAwalTabel; br <= barisAkhirTabel; br++) {
       for (let kol = 1; kol <= totalKolom; kol++) {
-        const cell = ws.getCell(br, kol);
-        cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+        ws.getCell(br, kol).border = garisTipis;
       }
     }
+    barisHeader.height = 26;
     barisHeader.font = { bold:true };
     barisHeader.eachCell(c => {
       c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFE4CF8B' } };
       c.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
     });
+
+    // ===== KOLOM HARI LIBUR: DI-MERGE DARI HEADER SAMPAI BARIS TERAKHIR =====
+    // Keterangan libur ditulis vertikal (diputar 90°) seperti pada buku absen manual.
+    periodeKolomTanggal.forEach((tgl, k) => {
+      const ket = periodeHariLibur[tgl];
+      if (!ket) return;
+      const kol = 4 + k;
+
+      // Kosongkan dulu isi sel di kolom ini supaya merge tidak menghapus data tak sengaja
+      for (let br = barisAwalTabel + 1; br <= barisAkhirTabel; br++) ws.getCell(br, kol).value = null;
+
+      if (barisAkhirTabel > barisAwalTabel) {
+        ws.mergeCells(barisAwalTabel + 1, kol, barisAkhirTabel, kol);
+      }
+      const selLibur = ws.getCell(barisAwalTabel + 1, kol);
+      selLibur.value = ket;
+      selLibur.alignment = { vertical:'middle', horizontal:'center', textRotation: 90, wrapText:false };
+      selLibur.font = { bold:true, size:9, color:{ argb: TEKS_LIBUR } };
+      selLibur.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_LIBUR } };
+      selLibur.border = garisTipis;
+
+      // Header tanggalnya ikut diberi warna libur
+      const selHeader = ws.getCell(barisAwalTabel, kol);
+      selHeader.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_LIBUR } };
+      selHeader.font = { bold:true, color:{ argb: TEKS_LIBUR } };
+    });
+
     ws.getRow(2).font = { bold:true, size:13 };
     ws.getRow(3).font = { italic:true, size:10 };
     ws.mergeCells(2,1,2,3);
     ws.mergeCells(3,1,3,3);
 
+    // ===== LEGENDA WARNA =====
+    const barisLegenda = barisAkhirTabel + 2;
+    ws.getCell(barisLegenda, 1).value = 'Keterangan:';
+    ws.getCell(barisLegenda, 1).font = { bold:true, size:10 };
+    let kolLegenda = 2;
+    Object.keys(GAYA_STATUS).forEach(kode => {
+      const gaya = GAYA_STATUS[kode];
+      const selKode = ws.getCell(barisLegenda, kolLegenda);
+      selKode.value = kode;
+      selKode.alignment = { horizontal:'center', vertical:'middle' };
+      selKode.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: gaya.isi } };
+      selKode.font = { bold:true, size:10, color:{ argb: gaya.teks } };
+      selKode.border = garisTipis;
+      const selNama = ws.getCell(barisLegenda, kolLegenda + 1);
+      selNama.value = '= ' + gaya.nama;
+      selNama.font = { size:10 };
+      kolLegenda += 3;
+    });
+    const selLiburLegenda = ws.getCell(barisLegenda + 1, 2);
+    selLiburLegenda.value = '';
+    selLiburLegenda.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: ISI_LIBUR } };
+    selLiburLegenda.border = garisTipis;
+    ws.getCell(barisLegenda + 1, 3).value = '= Hari Libur (kolom digabung)';
+    ws.getCell(barisLegenda + 1, 3).font = { size:10 };
+
     ws.getColumn(1).width = 5;
     ws.getColumn(2).width = 13;
     ws.getColumn(3).width = 26;
-    for (let k = 0; k < periodeKolomTanggal.length; k++) ws.getColumn(4+k).width = 4;
+    for (let k = 0; k < periodeKolomTanggal.length; k++) ws.getColumn(4+k).width = 4.2;
     const kBase = 4 + periodeKolomTanggal.length;
     ws.getColumn(kBase).width = 8;
     ws.getColumn(kBase+1).width = 8;
@@ -1393,6 +1587,7 @@ function renderDaftarSiswa(list){
         <div class="n">${s.nama}</div>
         <div class="k">${s.nis} · ${s.kelas || '-'}</div>
       </div>
+      <button class="btn-foto" data-nis="${s.nis}" title="Ganti Foto Profil">📷</button>
       <button class="btn-kartu" data-nis="${s.nis}" title="Lihat Kartu Absen"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="8.3" cy="10.6" r="1.8" stroke="currentColor" stroke-width="1.6"/><path d="M5.3 15.2c.5-1.6 1.7-2.4 3-2.4s2.5.8 3 2.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.5 9.8h5M13.5 12.5h5M13.5 15.2h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
       <button class="hapus" data-nis="${s.nis}">Hapus</button>
     </div>`;
@@ -1408,6 +1603,13 @@ function renderDaftarSiswa(list){
   });
   document.querySelectorAll('.daftar-siswa .btn-kartu').forEach(btn=>{
     btn.addEventListener('click', ()=> bukaKartuAbsen(btn.dataset.nis));
+  });
+  document.querySelectorAll('.daftar-siswa .btn-foto').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      nisFotoSedangDiganti = btn.dataset.nis;
+      el('berkas-foto-siswa').value = '';
+      el('berkas-foto-siswa').click();
+    });
   });
 }
 
@@ -1426,6 +1628,103 @@ el('toggle-form-tambah').addEventListener('click', ()=>{
   f.style.display = f.style.display === 'block' ? 'none' : 'block';
 });
 
+/* ===== FOTO PROFIL LANGSUNG (unggah dari galeri / kamera) ===== */
+let fotoTerpilihBase64 = null;   // foto untuk siswa BARU (diunggah setelah siswa tersimpan)
+let nisFotoSedangDiganti = null; // NIS siswa lama yang sedang diganti fotonya
+
+// Mengecilkan & memampatkan foto di sisi perangkat sebelum dikirim. Foto kamera HP bisa
+// 3-5 MB; setelah dipotong jadi bujur sangkar 400px + JPEG kualitas 0.8 ukurannya sekitar
+// 30-60 KB, jadi cukup ringan untuk dikirim ke Apps Script lewat JSON.
+function kecilkanFoto(file, sisiMaks = 400, kualitas = 0.8){
+  return new Promise((resolve, reject)=>{
+    if (!file.type || !file.type.startsWith('image/')) { reject(new Error('Berkas bukan gambar.')); return; }
+    const pembaca = new FileReader();
+    pembaca.onerror = ()=> reject(new Error('Berkas tidak terbaca.'));
+    pembaca.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=> reject(new Error('Format gambar tidak didukung.'));
+      img.onload = ()=>{
+        // Potong bagian tengah menjadi bujur sangkar supaya pas di bingkai foto bulat.
+        const sisi = Math.min(img.width, img.height);
+        const sx = (img.width - sisi) / 2;
+        const sy = (img.height - sisi) / 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = sisiMaks; canvas.height = sisiMaks;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, sisiMaks, sisiMaks);
+        ctx.drawImage(img, sx, sy, sisi, sisi, 0, 0, sisiMaks, sisiMaks);
+        resolve(canvas.toDataURL('image/jpeg', kualitas));
+      };
+      img.src = pembaca.result;
+    };
+    pembaca.readAsDataURL(file);
+  });
+}
+
+function tampilkanPratinjauFoto(dataUrl){
+  const kotak = el('pratinjau-foto');
+  if (dataUrl) {
+    kotak.innerHTML = '<img src="' + dataUrl + '" alt="Pratinjau foto">';
+    kotak.classList.add('terisi');
+    el('btn-hapus-foto').classList.remove('hidden');
+  } else {
+    kotak.innerHTML = 'Foto';
+    kotak.classList.remove('terisi');
+    el('btn-hapus-foto').classList.add('hidden');
+  }
+}
+
+async function tanganiPilihFotoBaru(e){
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  el('unggah-info').textContent = 'Menyiapkan foto...';
+  try {
+    fotoTerpilihBase64 = await kecilkanFoto(file);
+    tampilkanPratinjauFoto(fotoTerpilihBase64);
+    const perkiraanKb = Math.round(fotoTerpilihBase64.length * 0.75 / 1024);
+    el('unggah-info').textContent = 'Foto siap diunggah (±' + perkiraanKb + ' KB). Akan tersimpan saat siswa disimpan.';
+  } catch(err){
+    fotoTerpilihBase64 = null;
+    el('unggah-info').textContent = 'Gagal membaca foto: ' + err.message;
+  }
+  e.target.value = '';
+}
+
+el('btn-pilih-foto').addEventListener('click', ()=> el('berkas-foto').click());
+el('btn-kamera-foto').addEventListener('click', ()=> el('berkas-foto-kamera').click());
+el('berkas-foto').addEventListener('change', tanganiPilihFotoBaru);
+el('berkas-foto-kamera').addEventListener('change', tanganiPilihFotoBaru);
+el('btn-hapus-foto').addEventListener('click', ()=>{
+  fotoTerpilihBase64 = null;
+  tampilkanPratinjauFoto(null);
+  el('unggah-info').textContent = 'Foto otomatis dikecilkan ke 400px agar hemat kuota.';
+});
+el('toggle-foto-url').addEventListener('click', ()=>{
+  el('tambah-foto').classList.toggle('hidden');
+  el('tambah-foto').focus();
+});
+
+// Ganti foto siswa yang SUDAH terdaftar (tombol 📷 di setiap baris daftar siswa).
+el('berkas-foto-siswa').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if (!file || !nisFotoSedangDiganti) return;
+  const nis = nisFotoSedangDiganti;
+  nisFotoSedangDiganti = null;
+  e.target.value = '';
+
+  tampilkanToast('Menyiapkan foto...');
+  try {
+    const dataUrl = await kecilkanFoto(file);
+    tampilkanToast('Mengunggah foto...');
+    const res = await apiPost('uploadFoto', { nis: nis, dataFoto: dataUrl, mimeFoto: 'image/jpeg' });
+    tampilkanToast(res.message);
+    if (res.success) muatSiswa();
+  } catch(err){
+    tampilkanToast('Gagal memproses foto: ' + err.message);
+  }
+});
+
 el('btn-simpan-siswa').addEventListener('click', async ()=>{
   const nis = el('tambah-nis').value.trim();
   const nama = el('tambah-nama').value.trim();
@@ -1435,12 +1734,33 @@ el('btn-simpan-siswa').addEventListener('click', async ()=>{
   const noHpOrtu = el('tambah-nohp').value.trim();
   const telegramChatId = el('tambah-telegram').value.trim();
   if (!nis || !nama) { tampilkanToast('NIS dan Nama wajib diisi.'); return; }
-  const res = await apiPost('addSiswa', { nis, nama, kelas, jk, foto, noHpOrtu, telegramChatId });
-  tampilkanToast(res.message);
-  if (res.success) {
+
+  const btn = el('btn-simpan-siswa');
+  const teksAsli = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+  try {
+    const res = await apiPost('addSiswa', { nis, nama, kelas, jk, foto, noHpOrtu, telegramChatId });
+    if (!res.success) { tampilkanToast(res.message); return; }
+
+    // Siswa tersimpan lebih dulu, baru fotonya diunggah dan URL-nya ditulis ke kolom FotoURL.
+    if (fotoTerpilihBase64) {
+      btn.textContent = 'Mengunggah foto...';
+      const resFoto = await apiPost('uploadFoto', { nis: nis, dataFoto: fotoTerpilihBase64, mimeFoto: 'image/jpeg' });
+      tampilkanToast(resFoto.success ? 'Siswa & foto berhasil disimpan.' : 'Siswa tersimpan, tapi foto gagal: ' + resFoto.message);
+    } else {
+      tampilkanToast(res.message);
+    }
+
     ['tambah-nis','tambah-nama','tambah-kelas','tambah-foto','tambah-nohp','tambah-telegram'].forEach(id=>el(id).value='');
+    fotoTerpilihBase64 = null;
+    tampilkanPratinjauFoto(null);
+    el('unggah-info').textContent = 'Foto otomatis dikecilkan ke 400px agar hemat kuota.';
+    el('tambah-foto').classList.add('hidden');
     el('form-tambah').style.display = 'none';
     muatSiswa();
+  } finally {
+    btn.disabled = false; btn.textContent = teksAsli;
   }
 });
 
