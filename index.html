@@ -238,6 +238,34 @@
     nav.tabs{ bottom:20px; border-radius:22px; box-shadow:0 12px 36px rgba(15,76,51,0.2); }
   }
 
+  /* ===== BERANDA (dashboard) ===== */
+  .br-ringkas{display:flex;gap:16px;align-items:center}
+  .br-ring{--p:0;width:112px;height:112px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--hijau) calc(var(--p)*1%),var(--garis) 0)}
+  .br-ring>div{width:86px;height:86px;border-radius:50%;background:#fff;display:grid;place-items:center;text-align:center}
+  .br-ring b{font-family:var(--font-judul);font-size:24px;line-height:1;display:block}
+  .br-ring small{font-size:10.5px;color:var(--teks-muda)}
+  .br-stat{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .br-stat div span{font-size:12px;color:var(--teks-muda);display:flex;align-items:center;gap:6px}
+  .br-stat div span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .br-stat div b{font-size:18px}
+  .br-h{font-family:var(--font-judul);font-size:15px;font-weight:700;margin:22px 2px 10px;display:flex;justify-content:space-between;align-items:baseline}
+  .br-h a{font-size:12px;font-weight:600;color:var(--hijau);text-decoration:none;cursor:pointer}
+  .br-list{display:flex;flex-direction:column;gap:10px}
+  .br-item{display:flex;align-items:center;gap:12px;background:var(--putih);border:1px solid var(--garis);border-radius:16px;padding:12px 14px}
+  .br-dot{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:var(--c);flex:none}
+  .br-item .t{flex:1;min-width:0}
+  .br-item .t b{display:block;font-size:14px}
+  .br-item .t small{font-size:12px;color:var(--teks-muda)}
+  .br-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,#fff)}
+  .br-bar{height:6px;background:var(--garis);border-radius:9px;margin-top:6px;overflow:hidden}
+  .br-bar i{display:block;height:100%;background:var(--hijau);border-radius:9px}
+  .br-chart{display:flex;align-items:flex-end;justify-content:space-between;height:150px;gap:10px;padding-top:8px}
+  .br-chart div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .br-chart i{width:100%;max-width:30px;background:var(--hijau);border-radius:8px 8px 4px 4px;display:block}
+  .br-chart div.hari-ini i{background:var(--emas)}
+  .br-chart span{font-size:11px;color:var(--teks-muda)}
+  .br-chart em{font-size:11px;font-style:normal;font-weight:600}
+  .br-kosong{text-align:center;color:var(--teks-muda);font-size:13px;padding:18px}
   section.tab-panel{padding-top:18px;}
   .kartu{
     background:var(--putih);border-radius:var(--radius);
@@ -655,17 +683,15 @@
   </header>
 
   <nav class="tabs">
-    <button data-tab="rekap">
-      <span class="ikon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><line x1="9" y1="8" x2="15" y2="8"></line><line x1="9" y1="12" x2="15" y2="12"></line><line x1="9" y1="16" x2="13" y2="16"></line></svg>
-      </span>
-      <span class="txt">Rekap Harian</span>
+    <button data-tab="beranda">
+      <span class="ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"></path></svg></span>
+      <span class="txt">Beranda</span>
     </button>
     <button data-tab="periode">
       <span class="ikon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,17 10,11 14,15 20,7"></polyline><polyline points="14,7 20,7 20,13"></polyline></svg>
       </span>
-      <span class="txt">Rekap Periode</span>
+      <span class="txt">Periode</span>
     </button>
     <button class="aktif scan-btn" data-tab="scan">
       <span class="ikon">
@@ -689,34 +715,10 @@
 
   <div class="container">
 
-    <!-- TAB: SCAN -->
-    <section class="tab-panel" id="tab-scan">
-      <div class="kartu">
-        <span class="eyebrow">Absensi Masuk / Pulang</span>
-        <h2>Pindai Kartu QR Siswa</h2>
-        <div class="scan-frame" id="scan-frame">
-          <div id="qr-reader"></div>
-        </div>
-        <div class="hasil-scan" id="hasil-scan">
-          <div class="foto-siswa" id="foto-siswa">?</div>
-          <div class="teks-hasil">
-            <span class="tipe-scan hidden" id="tipe-scan-label">Absen</span>
-            <div class="nama-siswa" id="hasil-nama">—</div>
-            <div class="detail" id="hasil-detail">—</div>
-          </div>
-        </div>
-        <div class="manual-toggle">
-          <a id="toggle-manual">Kamera bermasalah? Input NIS manual</a>
-        </div>
-        <div class="manual-input" id="manual-input">
-          <input type="text" id="input-nis-manual" placeholder="Ketik NIS siswa" inputmode="numeric" autocomplete="off">
-          <button id="btn-absen-manual"><span class="spinner"></span><span class="label-btn">Absen</span></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB: REKAP HARIAN -->
-    <section class="tab-panel hidden" id="tab-rekap">
+    <!-- TAB: BERANDA -->
+    <section class="tab-panel hidden" id="tab-beranda">
+      <div id="br-isi"><div class="br-kosong">Memuat ringkasan...</div></div>
+      <div id="br-harian" style="margin-top:22px">
       <div class="kartu">
         <span class="eyebrow">Rekap Harian</span>
         <h2>Daftar Kehadiran</h2>
@@ -756,6 +758,33 @@
           </div>
           <div class="field"><label>Catatan (opsional)</label><input type="text" id="keterangan-catatan" placeholder="Contoh: demam, ada surat dokter"></div>
           <button class="btn btn-primer" id="btn-simpan-keterangan">Simpan Keterangan</button>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- TAB: SCAN -->
+    <section class="tab-panel" id="tab-scan">
+      <div class="kartu">
+        <span class="eyebrow">Absensi Masuk / Pulang</span>
+        <h2>Pindai Kartu QR Siswa</h2>
+        <div class="scan-frame" id="scan-frame">
+          <div id="qr-reader"></div>
+        </div>
+        <div class="hasil-scan" id="hasil-scan">
+          <div class="foto-siswa" id="foto-siswa">?</div>
+          <div class="teks-hasil">
+            <span class="tipe-scan hidden" id="tipe-scan-label">Absen</span>
+            <div class="nama-siswa" id="hasil-nama">—</div>
+            <div class="detail" id="hasil-detail">—</div>
+          </div>
+        </div>
+        <div class="manual-toggle">
+          <a id="toggle-manual">Kamera bermasalah? Input NIS manual</a>
+        </div>
+        <div class="manual-input" id="manual-input">
+          <input type="text" id="input-nis-manual" placeholder="Ketik NIS siswa" inputmode="numeric" autocomplete="off">
+          <button id="btn-absen-manual"><span class="spinner"></span><span class="label-btn">Absen</span></button>
         </div>
       </div>
     </section>
@@ -1057,11 +1086,125 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
     btn.classList.add('aktif');
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.add('hidden'));
     el('tab-' + btn.dataset.tab).classList.remove('hidden');
-    if (btn.dataset.tab === 'rekap') muatRekap();
+    if (btn.dataset.tab === 'beranda') { muatBeranda(); muatRekap(); }
     if (btn.dataset.tab === 'kalender') muatHariLibur();
     if (btn.dataset.tab === 'scan' && !html5QrCode) mulaiScanner();
   });
 });
+
+/* ================= BERANDA (ringkasan, perlu perhatian, laporan mingguan) ================= */
+function tglLokal(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function klikTab(nama){ const b=document.querySelector('nav.tabs button[data-tab="'+nama+'"]'); if (b) b.click(); }
+
+async function muatBeranda(){
+  const wadah = el('br-isi');
+  const sekarang = new Date();
+  const hariIni = tglLokal(sekarang);
+  const selisihSenin = (sekarang.getDay()+6)%7;
+  const senin = new Date(sekarang); senin.setDate(senin.getDate()-selisihSenin);
+  const seninLalu = new Date(senin); seninLalu.setDate(seninLalu.getDate()-7);
+
+  const res = await apiPost('getRekapPeriode', { awal: tglLokal(seninLalu), akhir: hariIni });
+  if (!res.success) { wadah.innerHTML = '<div class="br-kosong">'+esc(res.message||'Gagal memuat data.')+'</div>'; return; }
+  const data = res.data || [], libur = res.hariLibur || {};
+
+  const hitung = (tgl, daftar) => {
+    const c = {H:0,T:0,S:0,I:0,A:0,total:0};
+    (daftar||data).forEach(r=>{ const k=r.harian[tgl]; if (k && c[k]!==undefined){ c[k]++; c.total++; } });
+    return c;
+  };
+  const persen = c => c.total ? Math.round((c.H+c.T)/c.total*100) : 0;
+
+  // 1. Ringkasan hari ini
+  const h = hitung(hariIni);
+  const belum = data.length - h.total;
+  let html = '<div class="kartu"><div class="br-ringkas"><div class="br-ring" style="--p:'+persen(h)+'"><div><span><b>'+persen(h)+'%</b><small>Hadir hari ini</small></span></div></div>'
+    + '<div class="br-stat">'
+    + '<div style="--c:var(--hijau)"><span>Hadir</span><b>'+h.H+'</b></div>'
+    + '<div style="--c:var(--emas)"><span>Terlambat</span><b>'+h.T+'</b></div>'
+    + '<div style="--c:#d99a1c"><span>Sakit</span><b>'+h.S+'</b></div>'
+    + '<div style="--c:#3b78c4"><span>Izin</span><b>'+h.I+'</b></div>'
+    + '<div style="--c:var(--merah)"><span>Alpa</span><b>'+h.A+'</b></div>'
+    + '<div style="--c:var(--teks-muda)"><span>Belum absen</span><b>'+belum+'</b></div>'
+    + '</div></div>'
+    + (libur[hariIni] ? '<div class="br-kosong" style="padding:10px 0 0">Hari ini libur: '+esc(libur[hariIni].keterangan)+'</div>' : '')
+    + '</div>';
+
+  // 2. Kelas hari ini
+  const kelasMap = {};
+  data.forEach(r=>{ const k=r.kelas||'-'; (kelasMap[k]=kelasMap[k]||[]).push(r); });
+  const daftarKelas = Object.keys(kelasMap).sort();
+  html += '<div class="br-h">Kelas hari ini <a onclick="el(\'br-harian\').scrollIntoView({behavior:\'smooth\'})">Daftar kehadiran</a></div><div class="br-list">';
+  daftarKelas.forEach(k=>{
+    const ch = hitung(hariIni, kelasMap[k]);
+    const n = kelasMap[k].length;
+    const status = ch.total===0 ? ['Menunggu','#d99a1c'] : (ch.total>=n ? ['Lengkap','var(--hijau)'] : ['Berjalan','#3b78c4']);
+    const ket = ch.total===0 ? 'Belum ada yang absen' : (ch.H+ch.T)+' dari '+n+' siswa hadir';
+    html += '<div class="br-item"><div class="br-dot" style="--c:var(--hijau)">'+esc(k)+'</div><div class="t"><b>Kelas '+esc(k)+'</b><small>'+ket+'</small></div><span class="br-badge" style="--c:'+status[1]+'">'+status[0]+'</span></div>';
+  });
+  if (!daftarKelas.length) html += '<div class="br-kosong">Belum ada data siswa.</div>';
+  html += '</div>';
+
+  // 3. Perlu perhatian: Alpa >= 3 hari berturut-turut, Sakit >= 2 hari berturut-turut
+  const tglMundur = (res.kolomTanggal||[]).slice().reverse();
+  const perhatian = [];
+  data.forEach(r=>{
+    let jenis=null, n=0;
+    for (const tgl of tglMundur){
+      if (libur[tgl] && libur[tgl].tipe==='khusus') continue;
+      const k = r.harian[tgl];
+      if (!k){ if (tgl===hariIni) continue; if (libur[tgl]) continue; break; }
+      if (!jenis){ if (k==='A'||k==='S') jenis=k; else break; }
+      if (k===jenis) n++; else break;
+    }
+    if (jenis==='A' && n>=3) perhatian.push({r, ket:'Alpa '+n+' hari berturut-turut', label:'Hubungi', warna:'var(--merah)', ikon:'!'});
+    else if (jenis==='S' && n>=2) perhatian.push({r, ket:'Sakit '+n+' hari berturut-turut', label:'Pantau', warna:'#d99a1c', ikon:'!'});
+  });
+  html += '<div class="br-h">Perlu perhatian</div><div class="br-list">';
+  perhatian.forEach(x=>{
+    html += '<div class="br-item"><div class="br-dot" style="--c:'+x.warna+'">'+x.ikon+'</div><div class="t"><b>'+esc(x.r.nama)+' ('+esc(x.r.kelas)+')</b><small>'+x.ket+'</small></div><span class="br-badge" style="--c:'+x.warna+'">'+x.label+'</span></div>';
+  });
+  if (!perhatian.length) html += '<div class="br-kosong">Tidak ada siswa yang perlu perhatian khusus.</div>';
+  html += '</div>';
+
+  // 4. Laporan minggu ini (Senin-Jumat) + perbandingan minggu lalu
+  const namaHari = ['Sen','Sel','Rab','Kam','Jum'];
+  let batang = '', totalMingguIni = {H:0,T:0,S:0,I:0,A:0,total:0}, totalMingguLalu = {H:0,T:0,S:0,I:0,A:0,total:0};
+  const tambah = (t,c)=>['H','T','S','I','A','total'].forEach(x=>t[x]+=c[x]);
+  for (let i=0;i<5;i++){
+    const d = new Date(senin); d.setDate(d.getDate()+i);
+    const dl = new Date(seninLalu); dl.setDate(dl.getDate()+i);
+    const tgl = tglLokal(d), tglLalu = tglLokal(dl);
+    if (!libur[tglLalu]) tambah(totalMingguLalu, hitung(tglLalu));
+    const c = hitung(tgl);
+    if (!libur[tgl]) tambah(totalMingguIni, c);
+    const ada = c.total>0 && !libur[tgl];
+    batang += '<div class="'+(tgl===hariIni?'hari-ini':'')+'"><em>'+(ada?persen(c)+'%':(libur[tgl]?'Libur':'—'))+'</em><i style="height:'+(ada?Math.max(4,persen(c)*1.05):2)+'px"></i><span>'+namaHari[i]+'</span></div>';
+  }
+  const pIni = persen(totalMingguIni), pLalu = persen(totalMingguLalu);
+  const delta = totalMingguLalu.total ? (pIni-pLalu) : null;
+  const ketDelta = delta===null ? 'Belum ada data minggu lalu' : (delta>0?'Naik '+delta+'% dari minggu lalu':(delta<0?'Turun '+Math.abs(delta)+'% dari minggu lalu':'Sama dengan minggu lalu'));
+  html += '<div class="br-h">Laporan minggu ini</div><div class="kartu"><div class="br-chart">'+batang+'</div></div>'
+    + '<div class="br-list" style="margin-top:12px">'
+    + '<div class="br-item"><div class="t"><b>Rata-rata kehadiran</b><small>'+ketDelta+'</small></div><b>'+pIni+'%</b></div>'
+    + '<div class="br-item"><div class="t"><b>Total siswa tidak hadir</b><small>Sakit, izin, dan alpa</small></div><b>'+(totalMingguIni.S+totalMingguIni.I+totalMingguIni.A)+'</b></div>'
+    + '</div>';
+
+  // 5. Kehadiran per kelas minggu ini
+  html += '<div class="br-h">Kehadiran per kelas <a onclick="klikTab(\'periode\')">Unduh laporan</a></div><div class="br-list">';
+  daftarKelas.forEach(k=>{
+    const c = {H:0,T:0,S:0,I:0,A:0,total:0};
+    for (let i=0;i<5;i++){ const d=new Date(senin); d.setDate(d.getDate()+i); const t=tglLokal(d); if(!libur[t]) tambah(c, hitung(t, kelasMap[k])); }
+    const p = persen(c);
+    html += '<div class="br-item"><div class="br-dot" style="--c:var(--hijau)">'+esc(k)+'</div><div class="t"><b>Kelas '+esc(k)+'</b><small>'+kelasMap[k].length+' siswa, kehadiran '+(c.total?p+'%':'—')+'</small><div class="br-bar"><i style="width:'+p+'%"></i></div></div></div>';
+  });
+  html += '</div>';
+
+  wadah.innerHTML = html;
+}
 
 /* ================= SCAN QR ================= */
 function mulaiScanner(){
