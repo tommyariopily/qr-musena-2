@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Absensi QR">
-<link rel="apple-touch-icon" href="https://i.ibb.co.com/5Xb4Crkq/Logo-Sekolah-01.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -266,6 +266,27 @@
   .br-chart span{font-size:11px;color:var(--teks-muda)}
   .br-chart em{font-size:11px;font-style:normal;font-weight:600}
   .br-kosong{text-align:center;color:var(--teks-muda);font-size:13px;padding:18px}
+  /* ===== BANNER PASANG APLIKASI ===== */
+  .banner-pasang{
+    position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));
+    max-width:616px;margin:0 auto;z-index:70;
+    display:flex;align-items:center;gap:12px;
+    background:var(--putih);border:1px solid var(--garis);border-left:4px solid var(--emas);
+    border-radius:16px;padding:12px 12px 12px 14px;
+    box-shadow:0 10px 32px rgba(15,76,51,0.22);
+    transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .3s,opacity .3s;
+  }
+  body:has(#app-screen.hidden) .banner-pasang{bottom:calc(16px + env(safe-area-inset-bottom));}
+  .banner-pasang.tampil{transform:none;opacity:1;pointer-events:auto;}
+  .banner-pasang img{width:44px;height:44px;border-radius:11px;flex:none;}
+  .banner-pasang .isi{flex:1;min-width:0;}
+  .banner-pasang .isi b{display:block;font-family:var(--font-judul);font-size:13.5px;color:var(--hijau-tua);}
+  .banner-pasang .isi span{display:block;font-size:12px;color:var(--teks-muda);line-height:1.35;margin-top:2px;}
+  .banner-pasang .aksi{display:flex;flex-direction:column;gap:6px;flex:none;}
+  .banner-pasang button{border:none;border-radius:9px;font-size:12.5px;font-weight:600;padding:8px 14px;}
+  .banner-pasang .ya{background:var(--hijau-tua);color:#fff;}
+  .banner-pasang .nanti{background:transparent;color:var(--teks-muda);padding:4px 14px;}
+  @media (prefers-reduced-motion:reduce){.banner-pasang{transition:none;}}
   section.tab-panel{padding-top:18px;}
   .kartu{
     background:var(--putih);border-radius:var(--radius);
@@ -683,7 +704,7 @@
   </header>
 
   <nav class="tabs">
-    <button data-tab="beranda">
+    <button class="aktif" data-tab="beranda">
       <span class="ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"></path></svg></span>
       <span class="txt">Beranda</span>
     </button>
@@ -693,7 +714,7 @@
       </span>
       <span class="txt">Periode</span>
     </button>
-    <button class="aktif scan-btn" data-tab="scan">
+    <button class="scan-btn" data-tab="scan">
       <span class="ikon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2"></path><path d="M16 4h2a2 2 0 0 1 2 2v2"></path><path d="M20 16v2a2 2 0 0 1-2 2h-2"></path><path d="M8 20H6a2 2 0 0 1-2-2v-2"></path><line x1="7" y1="12" x2="17" y2="12"></line></svg>
       </span>
@@ -716,7 +737,7 @@
   <div class="container">
 
     <!-- TAB: BERANDA -->
-    <section class="tab-panel hidden" id="tab-beranda">
+    <section class="tab-panel" id="tab-beranda">
       <div id="br-isi"><div class="br-kosong">Memuat ringkasan...</div></div>
       <div id="br-harian" style="margin-top:22px">
       <div class="kartu">
@@ -764,7 +785,7 @@
     </section>
 
     <!-- TAB: SCAN -->
-    <section class="tab-panel" id="tab-scan">
+    <section class="tab-panel hidden" id="tab-scan">
       <div class="kartu">
         <span class="eyebrow">Absensi Masuk / Pulang</span>
         <h2>Pindai Kartu QR Siswa</h2>
@@ -935,6 +956,13 @@
 
 <div class="toast" id="toast"></div>
 
+
+<div class="banner-pasang" id="banner-pasang" role="dialog" aria-live="polite" aria-label="Pasang aplikasi">
+  <img src="icon-192.png" alt="">
+  <div class="isi"><b>Pasang Absensi QR</b><span id="banner-pasang-teks">Buka lebih cepat dari layar utama dan tampil layar penuh.</span></div>
+  <div class="aksi"><button class="ya" id="banner-pasang-ya">Pasang</button><button class="nanti" id="banner-pasang-nanti">Nanti</button></div>
+</div>
+
 <script>
 /* =========================================================
    KONFIGURASI — WAJIB DIISI SEBELUM DIPAKAI
@@ -1073,8 +1101,7 @@ function masukKeAplikasi(){
   el('app-tanggal').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   el('filter-tanggal').value = now.toISOString().slice(0,10);
   aturPresetPeriode('bulan-ini');
-  mulaiScanner();
-  muatRekap();
+  klikTab('beranda'); // halaman utama setelah login (memuat dashboard + rekap harian)
   muatSiswa();
   muatHariLibur();
 }
@@ -2318,37 +2345,72 @@ el('btn-cetak-qr').addEventListener('click', async ()=>{
 // ===== PWA: registrasi Service Worker =====
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw-absensi.js', { scope: './absensi-qr-smp.html' }).catch(err => {
+    navigator.serviceWorker.register('sw-absensi.js').catch(err => {
       console.warn('Gagal mendaftarkan service worker:', err);
     });
   });
 }
 
-// ===== PWA: tombol "Pasang Aplikasi" =====
+// ===== PWA: notifikasi & tombol "Pasang Aplikasi" =====
 let promptInstalasiTertunda = null;
+const KUNCI_TUNDA_PASANG = 'absensi_pasang_tunda_hingga';
+const sudahTerpasang = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const perangkatIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+function bolehTampilBannerPasang(){
+  if (sudahTerpasang()) return false;
+  try { return Date.now() > Number(localStorage.getItem(KUNCI_TUNDA_PASANG) || 0); } catch(e){ return true; }
+}
+function tundaBannerPasang(hari){
+  try { localStorage.setItem(KUNCI_TUNDA_PASANG, String(Date.now() + hari*86400000)); } catch(e){}
+}
+function sembunyikanBannerPasang(){ el('banner-pasang').classList.remove('tampil'); }
+function tampilkanBannerPasang(modeIOS){
+  if (!bolehTampilBannerPasang()) return;
+  if (modeIOS) {
+    el('banner-pasang-teks').textContent = 'Ketuk tombol Bagikan di Safari, lalu pilih "Tambah ke Layar Utama".';
+    el('banner-pasang-ya').textContent = 'Mengerti';
+  }
+  el('banner-pasang').dataset.mode = modeIOS ? 'ios' : 'prompt';
+  setTimeout(()=>el('banner-pasang').classList.add('tampil'), 1500);
+}
+
+async function jalankanInstalasi(){
+  if (!promptInstalasiTertunda) return;
+  promptInstalasiTertunda.prompt();
+  const pilihan = await promptInstalasiTertunda.userChoice;
+  promptInstalasiTertunda = null;
+  el('btn-pasang-app').classList.add('hidden');
+  sembunyikanBannerPasang();
+  if (pilihan.outcome !== 'accepted') tundaBannerPasang(3);
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   promptInstalasiTertunda = e;
-  const tombol = el('btn-pasang-app');
-  if (tombol) tombol.classList.remove('hidden');
+  el('btn-pasang-app').classList.remove('hidden');
+  tampilkanBannerPasang(false);
 });
 
-const tombolPasang = el('btn-pasang-app');
-if (tombolPasang) {
-  tombolPasang.addEventListener('click', async () => {
-    if (!promptInstalasiTertunda) return;
-    promptInstalasiTertunda.prompt();
-    await promptInstalasiTertunda.userChoice;
-    promptInstalasiTertunda = null;
-    tombolPasang.classList.add('hidden');
-  });
-}
+el('btn-pasang-app').addEventListener('click', jalankanInstalasi);
+el('banner-pasang-ya').addEventListener('click', () => {
+  if (el('banner-pasang').dataset.mode === 'ios') { tundaBannerPasang(14); sembunyikanBannerPasang(); }
+  else jalankanInstalasi();
+});
+el('banner-pasang-nanti').addEventListener('click', () => {
+  tundaBannerPasang(el('banner-pasang').dataset.mode === 'ios' ? 14 : 3);
+  sembunyikanBannerPasang();
+});
 
 window.addEventListener('appinstalled', () => {
-  const tombol = el('btn-pasang-app');
-  if (tombol) tombol.classList.add('hidden');
+  el('btn-pasang-app').classList.add('hidden');
+  sembunyikanBannerPasang();
   promptInstalasiTertunda = null;
+  tampilkanToast('Aplikasi berhasil dipasang.');
 });
+
+// iOS Safari tidak punya prompt otomatis: tampilkan petunjuk manual.
+if (perangkatIOS() && !sudahTerpasang()) tampilkanBannerPasang(true);
 </script>
 </body>
 </html>
