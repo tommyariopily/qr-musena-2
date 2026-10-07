@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Absensi QR — SMP Muhammadiyah 9 Nagreg</title>
+<title>Absensi QR - SMP Muhammadiyah 9 Nagreg</title>
 <link rel="icon" href="https://i.ibb.co.com/5Xb4Crkq/Logo-Sekolah-01.png">
 
 <!-- ===== PWA: manifest & meta ===== -->
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Absensi QR">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -287,6 +287,13 @@
   .banner-pasang .ya{background:var(--hijau-tua);color:#fff;}
   .banner-pasang .nanti{background:transparent;color:var(--teks-muda);padding:4px 14px;}
   @media (prefers-reduced-motion:reduce){.banner-pasang{transition:none;}}
+  /* ===== PEMILIH TANGGAL BERANDA ===== */
+  .br-tgl{display:flex;gap:8px;align-items:center;}
+  .br-tgl button{flex:none;width:42px;height:42px;border-radius:12px;border:1px solid var(--garis);background:var(--putih);color:var(--hijau-tua);font-size:20px;font-weight:700;line-height:1;}
+  .br-tgl button:disabled{opacity:.35;}
+  .br-tgl input[type=date]{flex:1;min-width:0;height:42px;border:1px solid var(--garis);border-radius:12px;background:var(--putih);padding:0 12px;font:inherit;font-size:14px;font-weight:600;color:var(--hijau-tua);}
+  .br-tgl-info{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 2px 14px;font-size:12.5px;color:var(--teks-muda);}
+  .br-tgl-info button{border:none;background:color-mix(in srgb,var(--emas) 20%,#fff);color:var(--hijau-tua);font-weight:700;font-size:12px;padding:5px 12px;border-radius:99px;}
   section.tab-panel{padding-top:18px;}
   .kartu{
     background:var(--putih);border-radius:var(--radius);
@@ -738,6 +745,12 @@
 
     <!-- TAB: BERANDA -->
     <section class="tab-panel" id="tab-beranda">
+      <div class="br-tgl">
+        <button id="br-prev" aria-label="Hari sebelumnya">&#8249;</button>
+        <input type="date" id="br-tgl" aria-label="Pilih tanggal dashboard">
+        <button id="br-next" aria-label="Hari berikutnya">&#8250;</button>
+      </div>
+      <div class="br-tgl-info"><span id="br-tgl-teks"></span><button id="br-hariini" class="hidden">Kembali ke hari ini</button></div>
       <div id="br-isi"><div class="br-kosong">Memuat ringkasan...</div></div>
       <div id="br-harian" style="margin-top:22px">
       <div class="kartu">
@@ -958,7 +971,7 @@
 
 
 <div class="banner-pasang" id="banner-pasang" role="dialog" aria-live="polite" aria-label="Pasang aplikasi">
-  <img src="icon-192.png" alt="">
+  <img src="images/icon-192.png" alt="">
   <div class="isi"><b>Pasang Absensi QR</b><span id="banner-pasang-teks">Buka lebih cepat dari layar utama dan tampil layar penuh.</span></div>
   <div class="aksi"><button class="ya" id="banner-pasang-ya">Pasang</button><button class="nanti" id="banner-pasang-nanti">Nanti</button></div>
 </div>
@@ -1034,6 +1047,40 @@ async function apiPostTanpaToken(action, payload){
   return res.json();
 }
 
+/* ================= KOREKSI JAM PERANGKAT ================= */
+// Jam perangkat (HP/laptop) sering meleset beberapa menit. Aplikasi mengukur selisihnya dengan
+// jam server Google, lalu setiap scan memakai "jam perangkat + selisih" sehingga jam masuk
+// tetap akurat walau jam perangkat salah, dan tetap tepat walau server antre memproses.
+let selisihJamServerMs = 0;      // jamServer - jamPerangkat (ms)
+let rttTerbaikMs = Infinity;     // sampel dengan latensi terkecil dianggap paling akurat
+let sudahPeringatJam = false;
+
+function waktuAkuratIso(){ return new Date(Date.now() + selisihJamServerMs).toISOString(); }
+
+async function sinkronJamServer(jumlahSampel){
+  for (let i = 0; i < (jumlahSampel || 3); i++) {
+    try {
+      const t0 = Date.now();
+      const res = await apiPostTanpaToken('waktuServer', {});
+      const t1 = Date.now();
+      if (res && res.success && res.serverMs) {
+        const rtt = t1 - t0;
+        if (rtt <= rttTerbaikMs * 1.5 || !isFinite(rttTerbaikMs)) {
+          selisihJamServerMs = res.serverMs - (t0 + rtt / 2);
+          rttTerbaikMs = Math.min(rttTerbaikMs, rtt);
+        }
+      }
+    } catch (e) {}
+  }
+  const menit = Math.round(Math.abs(selisihJamServerMs) / 60000);
+  if (menit >= 1 && !sudahPeringatJam) {
+    sudahPeringatJam = true;
+    tampilkanToast('Jam perangkat ini ' + (selisihJamServerMs < 0 ? 'lebih cepat ' : 'lebih lambat ') + menit + ' menit dari jam server. Dikoreksi otomatis.');
+  }
+}
+setInterval(() => { if (TOKEN) { rttTerbaikMs = Infinity; sinkronJamServer(2); } }, 10 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && TOKEN) { rttTerbaikMs = Infinity; sinkronJamServer(2); } });
+
 /* ================= LOGIN ================= */
 window.addEventListener('DOMContentLoaded', async () => {
   if (API_URL.indexOf('TEMPEL_URL_WEB_APP') !== -1) {
@@ -1099,9 +1146,11 @@ function masukKeAplikasi(){
   el('app-screen').classList.remove('hidden');
   const now = new Date();
   el('app-tanggal').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  el('filter-tanggal').value = now.toISOString().slice(0,10);
+  el('filter-tanggal').value = tglLokal(now);
   aturPresetPeriode('bulan-ini');
+  berandaTanggal = null;
   klikTab('beranda'); // halaman utama setelah login (memuat dashboard + rekap harian)
+  sinkronJamServer(3); // koreksi jam perangkat terhadap server (di latar belakang)
   muatSiswa();
   muatHariLibur();
 }
@@ -1123,18 +1172,67 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
 function tglLokal(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function namaKelas(k){ return /^kelas/i.test(k) ? k : 'Kelas ' + k; }
+function singkatKelas(k){ return String(k).replace(/^kelas\s*/i,''); }
 function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function klikTab(nama){ const b=document.querySelector('nav.tabs button[data-tab="'+nama+'"]'); if (b) b.click(); }
 
-async function muatBeranda(){
+let berandaTanggal = null;   // null = hari ini; selain itu "yyyy-MM-dd"
+let cacheBeranda = { kunci:'', waktu:0, res:null };
+function tglDariString(t){ const p=t.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
+function perbaruiKontrolBeranda(t){
+  const hariIniReal = tglLokal(new Date());
+  el('br-tgl').value = t; el('br-tgl').max = hariIniReal;
+  el('br-next').disabled = t >= hariIniReal;
+  el('br-hariini').classList.toggle('hidden', t === hariIniReal);
+  el('br-tgl-teks').textContent = tglDariString(t).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (t===hariIniReal ? ' · Hari ini' : '');
+}
+function gantiTanggalBeranda(t){
+  const hariIniReal = tglLokal(new Date());
+  if (!t || t >= hariIniReal) t = hariIniReal;
+  berandaTanggal = (t === hariIniReal) ? null : t;
+  el('filter-tanggal').value = t;      // rekap harian di bawah ikut berpindah tanggal
+  muatBeranda(true);
+  muatRekap();
+}
+function geserTanggalBeranda(n){
+  const d = tglDariString(berandaTanggal || tglLokal(new Date()));
+  d.setDate(d.getDate() + n);
+  gantiTanggalBeranda(tglLokal(d));
+}
+el('br-prev').addEventListener('click', () => geserTanggalBeranda(-1));
+el('br-next').addEventListener('click', () => geserTanggalBeranda(1));
+el('br-hariini').addEventListener('click', () => gantiTanggalBeranda(null));
+el('br-tgl').addEventListener('change', () => gantiTanggalBeranda(el('br-tgl').value));
+// Kalau tanggal diganti lewat filter di kartu Rekap Harian, dashboard ikut berpindah.
+el('filter-tanggal').addEventListener('change', () => {
+  const v = el('filter-tanggal').value; if (!v) return;
+  berandaTanggal = (v >= tglLokal(new Date())) ? null : v;
+  muatBeranda(true);
+});
+
+async function muatBeranda(pakaiCache){
   const wadah = el('br-isi');
-  const sekarang = new Date();
-  const hariIni = tglLokal(sekarang);
+  const hariIniReal = tglLokal(new Date());
+  const hariIni = berandaTanggal || hariIniReal;     // "hariIni" di bawah = tanggal yang sedang dilihat
+  const adalahHariIni = (hariIni === hariIniReal);
+  const sekarang = tglDariString(hariIni);
+  perbaruiKontrolBeranda(hariIni);
   const selisihSenin = (sekarang.getDay()+6)%7;
   const senin = new Date(sekarang); senin.setDate(senin.getDate()-selisihSenin);
   const seninLalu = new Date(senin); seninLalu.setDate(seninLalu.getDate()-7);
 
-  const res = await apiPost('getRekapPeriode', { awal: tglLokal(seninLalu), akhir: hariIni });
+  const mingguIni = new Date(senin); mingguIni.setDate(mingguIni.getDate()+6);
+  const kunci = tglLokal(seninLalu) + '|' + tglLokal(mingguIni);
+  let res;
+  if (pakaiCache === true && cacheBeranda.kunci === kunci && (Date.now() - cacheBeranda.waktu) < 60000) {
+    res = cacheBeranda.res;
+  } else {
+    wadah.style.opacity = '.45';
+    res = await apiPost('getRekapPeriode', { awal: tglLokal(seninLalu), akhir: tglLokal(mingguIni) });
+    wadah.style.opacity = '';
+    if (res.success) cacheBeranda = { kunci: kunci, waktu: Date.now(), res: res };
+  }
   if (!res.success) { wadah.innerHTML = '<div class="br-kosong">'+esc(res.message||'Gagal memuat data.')+'</div>'; return; }
   const data = res.data || [], libur = res.hariLibur || {};
 
@@ -1148,7 +1246,7 @@ async function muatBeranda(){
   // 1. Ringkasan hari ini
   const h = hitung(hariIni);
   const belum = data.length - h.total;
-  let html = '<div class="kartu"><div class="br-ringkas"><div class="br-ring" style="--p:'+persen(h)+'"><div><span><b>'+persen(h)+'%</b><small>Hadir hari ini</small></span></div></div>'
+  let html = '<div class="kartu"><div class="br-ringkas"><div class="br-ring" style="--p:'+persen(h)+'"><div><span><b>'+persen(h)+'%</b><small>'+(adalahHariIni?'Hadir hari ini':'Hadir')+'</small></span></div></div>'
     + '<div class="br-stat">'
     + '<div style="--c:var(--hijau)"><span>Hadir</span><b>'+h.H+'</b></div>'
     + '<div style="--c:var(--emas)"><span>Terlambat</span><b>'+h.T+'</b></div>'
@@ -1157,33 +1255,33 @@ async function muatBeranda(){
     + '<div style="--c:var(--merah)"><span>Alpa</span><b>'+h.A+'</b></div>'
     + '<div style="--c:var(--teks-muda)"><span>Belum absen</span><b>'+belum+'</b></div>'
     + '</div></div>'
-    + (libur[hariIni] ? '<div class="br-kosong" style="padding:10px 0 0">Hari ini libur: '+esc(libur[hariIni].keterangan)+'</div>' : '')
+    + (libur[hariIni] ? '<div class="br-kosong" style="padding:10px 0 0">'+(adalahHariIni?'Hari ini':'Tanggal ini')+' libur: '+esc(libur[hariIni].keterangan)+'</div>' : '')
     + '</div>';
 
   // 2. Kelas hari ini
   const kelasMap = {};
   data.forEach(r=>{ const k=r.kelas||'-'; (kelasMap[k]=kelasMap[k]||[]).push(r); });
   const daftarKelas = Object.keys(kelasMap).sort();
-  html += '<div class="br-h">Kelas hari ini <a onclick="el(\'br-harian\').scrollIntoView({behavior:\'smooth\'})">Daftar kehadiran</a></div><div class="br-list">';
+  html += '<div class="br-h">'+(adalahHariIni?'Kelas hari ini':'Kelas pada tanggal ini')+' <a onclick="el(\'br-harian\').scrollIntoView({behavior:\'smooth\'})">Daftar kehadiran</a></div><div class="br-list">';
   daftarKelas.forEach(k=>{
     const ch = hitung(hariIni, kelasMap[k]);
     const n = kelasMap[k].length;
     const status = ch.total===0 ? ['Menunggu','#d99a1c'] : (ch.total>=n ? ['Lengkap','var(--hijau)'] : ['Berjalan','#3b78c4']);
     const ket = ch.total===0 ? 'Belum ada yang absen' : (ch.H+ch.T)+' dari '+n+' siswa hadir';
-    html += '<div class="br-item"><div class="br-dot" style="--c:var(--hijau)">'+esc(k)+'</div><div class="t"><b>Kelas '+esc(k)+'</b><small>'+ket+'</small></div><span class="br-badge" style="--c:'+status[1]+'">'+status[0]+'</span></div>';
+    html += '<div class="br-item"><div class="br-dot" style="--c:var(--hijau)">'+esc(singkatKelas(k))+'</div><div class="t"><b>'+esc(namaKelas(k))+'</b><small>'+ket+'</small></div><span class="br-badge" style="--c:'+status[1]+'">'+status[0]+'</span></div>';
   });
   if (!daftarKelas.length) html += '<div class="br-kosong">Belum ada data siswa.</div>';
   html += '</div>';
 
   // 3. Perlu perhatian: Alpa >= 3 hari berturut-turut, Sakit >= 2 hari berturut-turut
-  const tglMundur = (res.kolomTanggal||[]).slice().reverse();
+  const tglMundur = (res.kolomTanggal||[]).filter(t => t <= hariIni).reverse();
   const perhatian = [];
   data.forEach(r=>{
     let jenis=null, n=0;
     for (const tgl of tglMundur){
       if (libur[tgl] && libur[tgl].tipe==='khusus') continue;
       const k = r.harian[tgl];
-      if (!k){ if (tgl===hariIni) continue; if (libur[tgl]) continue; break; }
+      if (!k){ if (tgl===hariIni && adalahHariIni) continue; if (libur[tgl]) continue; break; }
       if (!jenis){ if (k==='A'||k==='S') jenis=k; else break; }
       if (k===jenis) n++; else break;
     }
@@ -1214,7 +1312,7 @@ async function muatBeranda(){
   const pIni = persen(totalMingguIni), pLalu = persen(totalMingguLalu);
   const delta = totalMingguLalu.total ? (pIni-pLalu) : null;
   const ketDelta = delta===null ? 'Belum ada data minggu lalu' : (delta>0?'Naik '+delta+'% dari minggu lalu':(delta<0?'Turun '+Math.abs(delta)+'% dari minggu lalu':'Sama dengan minggu lalu'));
-  html += '<div class="br-h">Laporan minggu ini</div><div class="kartu"><div class="br-chart">'+batang+'</div></div>'
+  html += '<div class="br-h">'+(adalahHariIni?'Laporan minggu ini':'Laporan minggu tanggal ini')+'</div><div class="kartu"><div class="br-chart">'+batang+'</div></div>'
     + '<div class="br-list" style="margin-top:12px">'
     + '<div class="br-item"><div class="t"><b>Rata-rata kehadiran</b><small>'+ketDelta+'</small></div><b>'+pIni+'%</b></div>'
     + '<div class="br-item"><div class="t"><b>Total siswa tidak hadir</b><small>Sakit, izin, dan alpa</small></div><b>'+(totalMingguIni.S+totalMingguIni.I+totalMingguIni.A)+'</b></div>'
@@ -1226,7 +1324,7 @@ async function muatBeranda(){
     const c = {H:0,T:0,S:0,I:0,A:0,total:0};
     for (let i=0;i<5;i++){ const d=new Date(senin); d.setDate(d.getDate()+i); const t=tglLokal(d); if(!libur[t]) tambah(c, hitung(t, kelasMap[k])); }
     const p = persen(c);
-    html += '<div class="br-item"><div class="br-dot" style="--c:var(--hijau)">'+esc(k)+'</div><div class="t"><b>Kelas '+esc(k)+'</b><small>'+kelasMap[k].length+' siswa, kehadiran '+(c.total?p+'%':'—')+'</small><div class="br-bar"><i style="width:'+p+'%"></i></div></div></div>';
+    html += '<div class="br-item"><div class="br-dot" style="--c:var(--hijau)">'+esc(singkatKelas(k))+'</div><div class="t"><b>'+esc(namaKelas(k))+'</b><small>'+kelasMap[k].length+' siswa, kehadiran '+(c.total?p+'%':'—')+'</small><div class="br-bar"><i style="width:'+p+'%"></i></div></div></div>';
   });
   html += '</div>';
 
@@ -1265,7 +1363,7 @@ async function handleHasilScan(nis){
   if (sedangMemproses) return;
   sedangMemproses = true;
   // Waktu diambil TEPAT saat QR terbaca, bukan saat server memproses permintaan.
-  const waktuClient = new Date().toISOString();
+  const waktuClient = waktuAkuratIso();
   html5QrCode.pause(true);
   await prosesAbsen(nis, waktuClient);
   setTimeout(()=>{
@@ -1291,7 +1389,7 @@ function tampilkanKotakMemuat(teks){
 
 async function prosesAbsen(nis, waktuClient){
   const kotak = el('hasil-scan');
-  const res = await apiPost('scan', { nis: nis, waktuClient: waktuClient || new Date().toISOString() });
+  const res = await apiPost('scan', { nis: nis, waktuClient: waktuClient || waktuAkuratIso() });
   kotak.style.display = 'flex';
   el('foto-siswa').className = 'foto-siswa';
   const labelTipe = el('tipe-scan-label');
@@ -1348,7 +1446,7 @@ async function absenManual(){
   label.textContent = 'Memproses';
   input.disabled = true;
   // Waktu diambil TEPAT saat tombol ditekan, bukan saat server memproses.
-  const waktuClient = new Date().toISOString();
+  const waktuClient = waktuAkuratIso();
   tampilkanKotakMemuat('Mencari NIS ' + nis);
 
   try {
@@ -1484,7 +1582,7 @@ el('btn-simpan-keterangan').addEventListener('click', async ()=>{
 });
 
 /* ================= REKAP PERIODE ================= */
-function tanggalKeString(d){ return d.toISOString().slice(0,10); }
+function tanggalKeString(d){ return tglLokal(d); }
 
 function aturPresetPeriode(preset){
   document.querySelectorAll('.preset-row button').forEach(b=>b.classList.toggle('aktif', b.dataset.preset===preset));
@@ -2345,7 +2443,7 @@ el('btn-cetak-qr').addEventListener('click', async ()=>{
 // ===== PWA: registrasi Service Worker =====
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw-absensi.js').catch(err => {
+    navigator.serviceWorker.register('sw-absensi.js', { scope: './absensi-qr-smp.html' }).catch(err => {
       console.warn('Gagal mendaftarkan service worker:', err);
     });
   });
