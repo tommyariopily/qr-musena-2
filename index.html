@@ -175,13 +175,6 @@
     font-family:var(--font-judul);font-weight:700;font-size:14.5px;line-height:1.25;
   }
   header.top .tanggal{font-size:11.5px;opacity:.75;font-family:var(--font-data);}
-  header.top .aksi-header{margin-left:auto;display:flex;align-items:center;gap:8px;}
-  header.top .aksi-header .keluar{margin-left:0;}
-  header.top .ikon-saja{display:grid;place-items:center;width:36px;height:34px;padding:0;}
-  header.top .ikon-saja svg{display:block;}
-  header.top .ikon-saja.berputar svg{animation:putar-refresh .8s linear infinite;}
-  @keyframes putar-refresh{to{transform:rotate(360deg);}}
-  @media (prefers-reduced-motion:reduce){header.top .ikon-saja.berputar svg{animation:none;}header.top .ikon-saja.berputar{opacity:.5;}}
   header.top .keluar{
     margin-left:auto;background:rgba(255,255,255,0.12);color:#fff;
     border:none;padding:8px 12px;border-radius:8px;font-size:12.5px;font-weight:600;
@@ -298,6 +291,10 @@
   .br-tgl{display:flex;gap:8px;align-items:center;}
   .br-tgl button{flex:none;width:42px;height:42px;border-radius:12px;border:1px solid var(--garis);background:var(--putih);color:var(--hijau-tua);font-size:20px;font-weight:700;line-height:1;}
   .br-tgl button:disabled{opacity:.35;}
+  .br-tgl .br-refresh{display:grid;place-items:center;padding:0;background:var(--hijau-tua);border-color:var(--hijau-tua);color:#fff;}
+  .br-tgl .br-refresh.berputar svg{animation:putar-refresh .8s linear infinite;}
+  @keyframes putar-refresh{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){.br-tgl .br-refresh.berputar svg{animation:none;}.br-tgl .br-refresh.berputar{opacity:.5;}}
   .br-tgl input[type=date]{flex:1;min-width:0;height:42px;border:1px solid var(--garis);border-radius:12px;background:var(--putih);padding:0 12px;font:inherit;font-size:14px;font-weight:600;color:var(--hijau-tua);}
   .br-tgl-info{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 2px 14px;font-size:12.5px;color:var(--teks-muda);}
   .br-tgl-info button{border:none;background:color-mix(in srgb,var(--emas) 20%,#fff);color:var(--hijau-tua);font-weight:700;font-size:12px;padding:5px 12px;border-radius:99px;}
@@ -712,11 +709,8 @@
         <div class="nama" id="app-nama-sekolah">SMP Muhammadiyah 9 Nagreg</div>
         <div class="tanggal" id="app-tanggal">—</div>
       </div>
-      <div class="aksi-header">
-        <button class="keluar hidden" id="btn-pasang-app" style="background:rgba(201,154,46,0.85);">⬇ Pasang</button>
-        <button class="keluar ikon-saja" id="btn-refresh" aria-label="Muat ulang data" title="Muat ulang data"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/></svg></button>
-        <button class="keluar" id="btn-keluar">Keluar</button>
-      </div>
+      <button class="keluar hidden" id="btn-pasang-app" style="margin-left:auto;background:rgba(201,154,46,0.85);">⬇ Pasang</button>
+      <button class="keluar" id="btn-keluar">Keluar</button>
     </div>
   </header>
 
@@ -759,6 +753,7 @@
         <button id="br-prev" aria-label="Hari sebelumnya">&#8249;</button>
         <input type="date" id="br-tgl" aria-label="Pilih tanggal dashboard">
         <button id="br-next" aria-label="Hari berikutnya">&#8250;</button>
+        <button id="btn-refresh" class="br-refresh" aria-label="Muat ulang data" title="Muat ulang data"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/></svg></button>
       </div>
       <div class="br-tgl-info"><span id="br-tgl-teks"></span><button id="br-hariini" class="hidden">Kembali ke hari ini</button></div>
       <div id="br-isi"><div class="br-kosong">Memuat ringkasan...</div></div>
@@ -1142,7 +1137,7 @@ async function login(){
 
 el('btn-keluar').addEventListener('click', keluarAplikasi);
 
-// Tombol muat ulang: memperbarui data pada tab yang sedang dibuka, tanpa logout.
+// Tombol muat ulang (di tab Beranda): memperbarui dashboard, rekap harian, dan daftar siswa tanpa logout.
 async function segarkanData(){
   const tombol = el('btn-refresh');
   if (tombol.classList.contains('berputar')) return;
@@ -1150,13 +1145,7 @@ async function segarkanData(){
   try {
     cacheBeranda = { kunci:'', waktu:0, res:null };
     rttTerbaikMs = Infinity;
-    const aktif = document.querySelector('nav.tabs button.aktif');
-    const tab = aktif ? aktif.dataset.tab : 'beranda';
-    const tugas = [sinkronJamServer(2)];
-    if (tab === 'beranda') { tugas.push(muatBeranda(), muatRekap()); }
-    else if (tab === 'periode') tugas.push(muatRekapPeriode());
-    else if (tab === 'siswa' || tab === 'scan') tugas.push(muatSiswa());
-    else if (tab === 'kalender') tugas.push(muatHariLibur());
+    const tugas = [sinkronJamServer(2), muatBeranda(), muatRekap(), muatSiswa()];
     await Promise.all(tugas);
     tampilkanToast('Data diperbarui.');
   } catch (e) {
